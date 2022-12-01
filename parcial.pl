@@ -72,25 +72,29 @@ test(careta,nondet):-
 % en él son de nacionalidad argentina y tienen popularidad mayor a 1000
 
 nacAndPop(Festival):-
-    festival(Festival,_,_),
+    festival(Festival,Bandas,_),
     not(careta(Festival)),
-    forall(festival(_,Bandas,_),(sonTodasArgentinasPopulares(Bandas,Popularidad),Popularidad>1000)).
+    forall(member(Banda,Bandas),(banda(Banda,argentina,Popularidad),Popularidad>1000)).
 
 
+bandasArgentinasSegunPopularidad(Festival,Banda,Popularidad):-
+    festival(Festival,Bandas,_),
+    banda(Banda,argentina,Popularidad),
+    member(Banda,Bandas).
+    
 % sonTodasArgentinasPopulares(Bandas,Popularidad):-
 %     findall(,banda(Banda,argentina,Popularidad),Popularidad>1000,Lista)
     
 %     banda(nombre,argentina, popularidad).
 
-
 % festival(NombreDelFestival, Bandas, Lugar).
 
-% :-begin_tests(parcialRock).
+:-begin_tests(parcialRock).
 
-% test(nacAndPop,nondet):-
-%     nacAndPop(rockNac).
+test(nacAndPop,nondet):-
+    nacAndPop(rockNac).
 
-% :-end_tests(parcialRock).
+:-end_tests(parcialRock).
 
 % festival(NombreDelFestival, Bandas, Lugar).
 % banda(nombre, nacionalidad, popularidad).
