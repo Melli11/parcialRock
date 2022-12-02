@@ -15,6 +15,8 @@ festival(rockNac,[damasGratis,nuevaLuna,losCharros],granRex).
 % entradas ahí.
 lugar(hipodromoSanIsidro, 85000, 3000).
 
+lugar(granRex, 2, 1500).
+
 % banda(nombre, nacionalidad, popularidad).
 % Relaciona una banda con su nacionalidad y su popularidad.
 banda(gunsAndRoses, eeuu, 69420).
@@ -77,17 +79,12 @@ nacAndPop(Festival):-
     forall(member(Banda,Bandas),(banda(Banda,argentina,Popularidad),Popularidad>1000)).
 
 
+% auxiliar
 bandasArgentinasSegunPopularidad(Festival,Banda,Popularidad):-
     festival(Festival,Bandas,_),
     banda(Banda,argentina,Popularidad),
     member(Banda,Bandas).
     
-% sonTodasArgentinasPopulares(Bandas,Popularidad):-
-%     findall(,banda(Banda,argentina,Popularidad),Popularidad>1000,Lista)
-    
-%     banda(nombre,argentina, popularidad).
-
-% festival(NombreDelFestival, Bandas, Lugar).
 
 :-begin_tests(parcialRock).
 
@@ -96,7 +93,80 @@ test(nacAndPop,nondet):-
 
 :-end_tests(parcialRock).
 
-% festival(NombreDelFestival, Bandas, Lugar).
-% banda(nombre, nacionalidad, popularidad).
-% Relaciona una banda con su nacionalidad y su popularidad.
-% banda(gunsAndRoses, eeuu, 69420).
+% 4) sobrevendido/1: Se cumple para los festivales que vendieron más entradas que la
+% capacidad del lugar donde se realizan.
+
+sobrevendido(Festival):-
+    festival(Festival,_,Lugar),
+    lugar(Lugar,Capacidad,_),
+    findall(Entrada,entradaVendida(Festival,Entrada),TotalVentas),
+    length(TotalVentas,TotalEntradasVendidas),
+    TotalEntradasVendidas > Capacidad.
+
+
+
+
+
+% Indica la venta de una entrada de cierto tipo para el festival
+% indicado.
+
+
+% 5) recaudaciónTotal/2: Relaciona un festival con el total recaudado con la venta de
+% entradas. Cada tipo de entrada se vende a un precio diferente:
+% - El precio del campo es el precio base del lugar donde se realiza el festival.
+% - La platea generales el precio base del lugar más el plus que se p aplica a la
+% zona.
+% - Las plateas numeradas salen el triple del precio base para las filas de atrás
+% (>10) y 6 veces el precio base para las 10 primeras filas.
+% Nota: no hace falta contemplar si es un festival itinerante.
+
+recaudaciónTotal(Festival,TotalRecaudado):-
+    festival(Festival,_,Lugar),
+    findall(Precio,(entradaVendida(Festival, TipoDeEntrada),precioEntrada(TipoDeEntrada,Lugar,Precio)),Precios),
+    sumlist(Precios,TotalRecaudado).
+    
+precioEntrada(campo,Lugar,Precio):-
+    festival(_,_,Lugar),
+    lugar(Lugar, _, Precio).  
+
+precioEntrada(plateaGeneral(Zona),Lugar,Precio):-
+    festival(_,_,Lugar),
+    lugar(Lugar, _, PrecioBase),
+    plusZona(Lugar, Zona, Recargo),
+    Precio is PrecioBase + Recargo.
+
+precioEntrada(plateaNumerada(Fila),Lugar,Precio):-
+    festival(_,_,Lugar),
+    lugar(Lugar, _, PrecioBase),
+    Fila =<10,
+    Precio is PrecioBase *6.
+
+precioEntrada(plateaNumerada(Fila),Lugar,Precio):-
+    festival(_,_,Lugar),
+    lugar(Lugar, _, PrecioBase),
+    Fila >10,
+    Precio is PrecioBase *3.
+
+
+delMismoPalo(UnaBanda,OtraBanda):-
+    tocaronJuntas(UnaBanda,OtraBanda).
+
+delMismoPalo(UnaBanda,OtraBanda):-
+    tocaronJuntas(UnaBanda,TercerBanda),
+    esMasPopular(TercerBanda,OtraBanda),
+    delMismoPalo(TercerBanda,OtraBanda).
+
+tocaronJuntas(UnaBanda,OtraBanda):-
+    festival(_,Bandas,_),
+    member(UnaBanda,Bandas),
+    member(OtraBanda,Bandas),
+    UnaBanda\=OtraBanda.
+
+esMasPopular(UnaBanda,OtraBanda):-
+    banda(UnaBanda,_,PopularidadA),
+    banda(OtraBanda,_,PopularidadB),
+    PopularidadA > PopularidadB.
+    % festival(NombreDelFestival, Bandas, Lugar).
+    % banda(nombre, nacionalidad, popularidad).
+
+
